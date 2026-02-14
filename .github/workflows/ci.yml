@@ -58,9 +58,25 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest tests/ -v --tb=short -x
+          pytest tests/ -v --tb=short -x --cov=textbaker --cov-report=xml --cov-report=term
         env:
           QT_QPA_PLATFORM: offscreen
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Upload coverage to Coveralls
+        if: matrix.python-version == '3.11'
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./coverage.xml
 
   build:
     name: Build Package
