@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "textbaker"
+version = "0.1.0"
+description = "Synthetic Text Dataset Generator for OCR Training"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Ramkrishna Acharya"}
+]
+maintainers = [
+    {name = "Ramkrishna Acharya"}
+]
+keywords = ["ocr", "dataset", "synthetic", "text", "image-generation", "machine-learning"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.21.0",
+    "opencv-python>=4.5.0",
+    "PySide6>=6.4.0",
+    "loguru>=0.6.0",
+    "typer[all]>=0.9.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-qt>=4.0.0",
+    "black>=22.0.0",
+    "isort>=5.0.0",
+    "flake8>=4.0.0",
+    "mypy>=0.990",
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.24.0",
+    "mkdocs-gen-files>=0.5.0",
+    "mkdocs-literate-nav>=0.6.0",
+    "mkdocs-section-index>=0.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/rnkrsoft/textbaker"
+Documentation = "https://rnkrsoft.github.io/textbaker"
+Repository = "https://github.com/rnkrsoft/textbaker"
+Issues = "https://github.com/rnkrsoft/textbaker/issues"
+
+[project.scripts]
+textbaker = "textbaker.cli:run"
+
+[project.gui-scripts]
+textbaker-gui = "textbaker.cli:run"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["textbaker*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
