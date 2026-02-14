@@ -1,5 +1,11 @@
 # local
+output
 dataset/
+examples/output/
+
+# MkDocs generated site
+site/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
