@@ -95,3 +95,4 @@ assets/demo_textures/
 !assets/backgrounds/*.jpg
 !assets/textures/*.png
 !assets/textures/*.jpg
+!docs/assets/**/*.png
