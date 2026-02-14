@@ -1,156 +1,270 @@
 # Examples
 
-This page demonstrates various ways to use TextBaker programmatically.
+This page demonstrates various ways to use TextBaker programmatically with visual outputs.
 
 All examples can be found in the [`examples/`](https://github.com/q-viper/text-baker/tree/main/examples) folder.
 
 ---
 
-## Basic Text Generation
+## 1. Basic Text Generation
 
-Generate text images with default settings:
+Generate text images with default settings using characters from your dataset.
+
+<table>
+<tr>
+<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_basic.png" alt="Basic" width="100%"></td>
+<td width="60%">
 
 ```python
-from textbaker import TextGenerator
-from textbaker.core.configs import GeneratorConfig, DatasetConfig
+from textbaker import TextGenerator, GeneratorConfig
+from textbaker.core.configs import DatasetConfig, TransformConfig
 
 config = GeneratorConfig(
     seed=42,
-    dataset=DatasetConfig(
-        dataset_dir="assets/dataset",
+    dataset=DatasetConfig(dataset_dir="assets/dataset"),
+    transform=TransformConfig(
+        rotation_range=(0, 0),
+        scale_range=(1.0, 1.0),
+    ),
+)
+
+generator = TextGenerator(config)
+result = generator.generate("12345")
+cv2.imwrite("example_basic.png", result.image)
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+## 2. With Transformations
+
+Apply rotation, perspective, and scale transformations.
+
+<table>
+<tr>
+<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_rotated.png" alt="Transformed" width="100%"></td>
+<td width="60%">
+
+```python
+from textbaker import TextGenerator, GeneratorConfig
+from textbaker.core.configs import (
+    DatasetConfig, TransformConfig, CharacterConfig
+)
+
+config = GeneratorConfig(
+    seed=123,
+    dataset=DatasetConfig(dataset_dir="assets/dataset"),
+    transform=TransformConfig(
+        rotation_range=(-20, 20),
+        perspective_range=(0.0, 0.08),
+        scale_range=(0.9, 1.1),
+    ),
+    character=CharacterConfig(
+        font="FONT_HERSHEY_DUPLEX",
+        font_scale=2.0,
+    ),
+)
+
+generator = TextGenerator(config)
+result = generator.generate("67890")
+cv2.imwrite("example_rotated.png", result.image)
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+## 3. Random Colors
+
+Generate text with random colors per character.
+
+<table>
+<tr>
+<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_colored.png" alt="Colored" width="100%"></td>
+<td width="60%">
+
+```python
+from textbaker import TextGenerator, GeneratorConfig
+from textbaker.core.configs import (
+    DatasetConfig, ColorConfig, CharacterConfig
+)
+
+config = GeneratorConfig(
+    seed=456,
+    dataset=DatasetConfig(dataset_dir="assets/dataset"),
+    color=ColorConfig(
+        random_color=True,
+        color_range_r=(100, 255),
+        color_range_g=(50, 200),
+        color_range_b=(50, 255),
+    ),
+    character=CharacterConfig(
+        font="FONT_HERSHEY_SCRIPT_COMPLEX",
+        font_scale=2.5,
+        thickness=2,
     ),
 )
 
 generator = TextGenerator(config)
 result = generator.generate("Hello")
-
-# Save the result
-import cv2
-cv2.imwrite("hello.png", result.image)
-print(f"Generated: {result.text}, Size: {result.image.shape[:2]}")
+cv2.imwrite("example_colored.png", result.image)
 ```
+
+</td>
+</tr>
+</table>
 
 ---
 
-## With Texture Overlay
+## 4. With Background Image
 
-Apply textures to the generated text:
+Place generated text on background images.
+
+<table>
+<tr>
+<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_background.png" alt="Background" width="100%"></td>
+<td width="60%">
 
 ```python
-from textbaker import TextGenerator
+from textbaker import TextGenerator, GeneratorConfig
 from textbaker.core.configs import (
-    GeneratorConfig,
-    DatasetConfig,
-    TextureConfig,
+    DatasetConfig, BackgroundConfig, 
+    ColorConfig, CharacterConfig
 )
 
 config = GeneratorConfig(
-    seed=123,
-    dataset=DatasetConfig(
-        dataset_dir="assets/dataset",
+    seed=789,
+    dataset=DatasetConfig(dataset_dir="assets/dataset"),
+    background=BackgroundConfig(
+        enabled=True,
+        background_dir="assets/backgrounds",
     ),
+    color=ColorConfig(
+        random_color=False,
+        fixed_color=(255, 255, 255),  # White text
+    ),
+    character=CharacterConfig(
+        font="FONT_HERSHEY_TRIPLEX",
+        font_scale=3.0,
+        thickness=2,
+    ),
+)
+
+generator = TextGenerator(config)
+result = generator.generate("World")
+cv2.imwrite("example_background.png", result.image)
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+## 5. With Texture Overlay
+
+Apply textures to the generated text.
+
+<table>
+<tr>
+<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_texture.png" alt="Texture" width="100%"></td>
+<td width="60%">
+
+```python
+from textbaker import TextGenerator, GeneratorConfig
+from textbaker.core.configs import (
+    DatasetConfig, TextureConfig, 
+    TransformConfig, CharacterConfig
+)
+
+config = GeneratorConfig(
+    seed=555,
+    dataset=DatasetConfig(dataset_dir="assets/dataset"),
     texture=TextureConfig(
         enabled=True,
         texture_dir="assets/textures",
         opacity=0.7,
-        per_character=False,  # Same texture for all characters
-    ),
-)
-
-generator = TextGenerator(config)
-result = generator.generate("Texture")
-cv2.imwrite("textured.png", result.image)
-```
-
----
-
-## With Background Image
-
-Place generated text on background images:
-
-```python
-from textbaker import TextGenerator
-from textbaker.core.configs import (
-    GeneratorConfig,
-    DatasetConfig,
-    BackgroundConfig,
-)
-
-config = GeneratorConfig(
-    seed=456,
-    dataset=DatasetConfig(
-        dataset_dir="assets/dataset",
-    ),
-    background=BackgroundConfig(
-        enabled=True,
-        background_dir="assets/backgrounds",
-        mode="random",  # Random position on background
-    ),
-)
-
-generator = TextGenerator(config)
-result = generator.generate("Background")
-cv2.imwrite("with_background.png", result.image)
-```
-
----
-
-## Full Pipeline
-
-Combine textures, backgrounds, transforms, and colors:
-
-```python
-from textbaker import TextGenerator
-from textbaker.core.configs import (
-    GeneratorConfig,
-    DatasetConfig,
-    TransformConfig,
-    ColorConfig,
-    TextureConfig,
-    BackgroundConfig,
-)
-
-config = GeneratorConfig(
-    seed=42,
-    spacing=3,
-    dataset=DatasetConfig(
-        dataset_dir="assets/dataset",
-        recursive=True,
     ),
     transform=TransformConfig(
-        rotation_range=(-12, 12),
-        perspective_range=(0.0, 0.08),
-        scale_range=(0.85, 1.15),
-        shear_range=(-3, 3),
+        rotation_range=(-5, 5),
+        scale_range=(1.0, 1.0),
+    ),
+    character=CharacterConfig(
+        font="FONT_HERSHEY_COMPLEX",
+        font_scale=2.5,
+    ),
+)
+
+generator = TextGenerator(config)
+result = generator.generate("Baker")
+cv2.imwrite("example_texture.png", result.image)
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+## 6. Full Pipeline
+
+Combine transforms, colors, textures, and backgrounds.
+
+<table>
+<tr>
+<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_full.png" alt="Full Pipeline" width="100%"></td>
+<td width="60%">
+
+```python
+from textbaker import TextGenerator, GeneratorConfig
+from textbaker.core.configs import (
+    DatasetConfig, TransformConfig, ColorConfig,
+    TextureConfig, BackgroundConfig, CharacterConfig
+)
+
+config = GeneratorConfig(
+    seed=999,
+    dataset=DatasetConfig(dataset_dir="assets/dataset"),
+    transform=TransformConfig(
+        rotation_range=(-15, 15),
+        perspective_range=(0, 0.05),
+        scale_range=(0.95, 1.05),
     ),
     color=ColorConfig(
         random_color=True,
-        color_range_r=(80, 255),
-        color_range_g=(80, 255),
-        color_range_b=(80, 255),
+        color_range_r=(150, 255),
+        color_range_g=(100, 200),
+        color_range_b=(50, 150),
     ),
     texture=TextureConfig(
         enabled=True,
         texture_dir="assets/textures",
-        opacity=0.75,
-        per_character=True,
+        opacity=0.4,
     ),
     background=BackgroundConfig(
         enabled=True,
         background_dir="assets/backgrounds",
-        mode="random",
+    ),
+    character=CharacterConfig(
+        font="FONT_HERSHEY_SCRIPT_SIMPLEX",
+        font_scale=2.0,
+        thickness=2,
     ),
 )
 
 generator = TextGenerator(config)
-
-# Generate multiple texts
-texts = ["Hello", "World", "TextBaker", "Python"]
-for text in texts:
-    result = generator.generate(text)
-    cv2.imwrite(f"{text.lower()}.png", result.image)
-    print(f"Generated: {result.text}")
+result = generator.generate("TextBaker")
+cv2.imwrite("example_full.png", result.image)
 ```
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -159,22 +273,17 @@ for text in texts:
 Generate many random samples for training:
 
 ```python
-from textbaker import TextGenerator
+from textbaker import TextGenerator, GeneratorConfig
 from textbaker.core.configs import (
-    GeneratorConfig,
-    DatasetConfig,
-    TransformConfig,
-    TextureConfig,
-    BackgroundConfig,
+    DatasetConfig, TransformConfig, 
+    TextureConfig, BackgroundConfig
 )
 from pathlib import Path
 
 config = GeneratorConfig(
     seed=303,
     text_length=(4, 8),  # Random length between 4 and 8
-    dataset=DatasetConfig(
-        dataset_dir="assets/dataset",
-    ),
+    dataset=DatasetConfig(dataset_dir="assets/dataset"),
     transform=TransformConfig(
         rotation_range=(-10, 10),
         scale_range=(0.9, 1.1),
@@ -210,21 +319,16 @@ print(f"Generated 100 samples in {output_dir}")
 Save and load configurations from YAML/JSON:
 
 ```python
-from textbaker import TextGenerator
+from textbaker import TextGenerator, GeneratorConfig
 from textbaker.core.configs import (
-    GeneratorConfig,
-    DatasetConfig,
-    TextureConfig,
-    BackgroundConfig,
+    DatasetConfig, TextureConfig, BackgroundConfig
 )
 
 # Create and save config
 config = GeneratorConfig(
     seed=999,
     spacing=2,
-    dataset=DatasetConfig(
-        dataset_dir="assets/dataset",
-    ),
+    dataset=DatasetConfig(dataset_dir="assets/dataset"),
     texture=TextureConfig(
         enabled=True,
         texture_dir="assets/textures",
@@ -281,19 +385,12 @@ textbaker generate -n 50 --seed 42
 
 ---
 
-## Running Examples
+## Generate Example Images
 
-To run the included examples:
+To regenerate the example images shown above, run:
 
 ```bash
-# Install textbaker
-pip install -e .
-
-# Run basic generation example
-python examples/basic_generation.py
-
-# Generate app icons
-python examples/generate_icon.py
+python examples/generate_readme_images.py
 ```
 
-Output will be saved to `examples/output/`.
+Output will be saved to `assets/readme/`.

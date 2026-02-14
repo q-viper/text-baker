@@ -83,6 +83,9 @@ Thumbs.db
 # Project specific
 assets/output/
 assets/dataset/
+assets/demo_dataset/
+assets/demo_backgrounds/
+assets/demo_textures/
 *.png
 *.jpg
 *.jpeg

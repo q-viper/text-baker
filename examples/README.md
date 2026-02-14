@@ -20,6 +20,14 @@ Comprehensive example showing how to generate text images using the Python modul
 
 Generate the TextBaker application icon with handwritten-style text using OpenCV.
 
+### `generate_readme_images.py`
+
+Generate the example images used in the README and documentation. Demonstrates:
+
+- Different CV2 fonts (SIMPLEX, DUPLEX, TRIPLEX, SCRIPT_COMPLEX, etc.)
+- Real assets from `assets/dataset/`, `assets/backgrounds/`, `assets/textures/`
+- Various configurations: basic, transformed, colored, background, texture, full pipeline
+
 ## Running Examples
 
 1. Make sure you have TextBaker installed:
@@ -37,12 +45,16 @@ python examples/basic_generation.py
 
 # Generate app icons
 python examples/generate_icon.py
+
+# Generate README example images
+python examples/generate_readme_images.py
 ```
 
 ## Output
 
 - `basic_generation.py` saves images to `examples/output/`
 - `generate_icon.py` saves icons to `assets/`
+- `generate_readme_images.py` saves images to `assets/readme/`
 
 ## Quick Reference
 

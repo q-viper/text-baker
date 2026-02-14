@@ -58,6 +58,8 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Examples: examples.md
+  - Configuration: configuration.md
+  - CLI Reference: cli.md
   - API Reference: api.md
 
 extra:
