@@ -2,8 +2,7 @@
 
 [![CI](https://github.com/q-viper/text-baker/actions/workflows/ci.yml/badge.svg)](https://github.com/q-viper/text-baker/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/q-viper/text-baker/badge.svg?branch=main)](https://coveralls.io/github/q-viper/text-baker?branch=main)
-[![codecov](https://codecov.io/gh/q-viper/text-baker/branch/main/graph/badge.svg)](https://codecov.io/gh/q-viper/text-baker)
-[![PyPI version](https://badge.fury.io/py/textbaker.svg)](https://badge.fury.io/py/textbaker)
+[![PyPI version](https://img.shields.io/pypi/v/textbaker.svg)](https://pypi.org/project/textbaker/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/textbaker.svg)](https://pypi.org/project/textbaker/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
