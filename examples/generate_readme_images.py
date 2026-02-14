@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import cv2
-import numpy as np
 
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -65,7 +64,7 @@ def generate_examples():
     generator = TextGenerator(config)
     result = generator.generate("12345")
     cv2.imwrite(str(OUTPUT_DIR / "example_basic.png"), result.image)
-    print(f"   ✓ Saved: example_basic.png")
+    print("   ✓ Saved: example_basic.png")
 
     # Example 2: With rotation and perspective
     print("2. Generating transformed example...")
@@ -85,7 +84,7 @@ def generate_examples():
     generator = TextGenerator(config)
     result = generator.generate("67890")
     cv2.imwrite(str(OUTPUT_DIR / "example_rotated.png"), result.image)
-    print(f"   ✓ Saved: example_rotated.png")
+    print("   ✓ Saved: example_rotated.png")
 
     # Example 3: With random colors (using script font for fallback chars)
     print("3. Generating colored example...")
@@ -107,7 +106,7 @@ def generate_examples():
     generator = TextGenerator(config)
     result = generator.generate("Hello")  # Uses fallback for letters
     cv2.imwrite(str(OUTPUT_DIR / "example_colored.png"), result.image)
-    print(f"   ✓ Saved: example_colored.png")
+    print("   ✓ Saved: example_colored.png")
 
     # Example 4: With background
     print("4. Generating with background...")
@@ -131,7 +130,7 @@ def generate_examples():
     generator = TextGenerator(config)
     result = generator.generate("World")
     cv2.imwrite(str(OUTPUT_DIR / "example_background.png"), result.image)
-    print(f"   ✓ Saved: example_background.png")
+    print("   ✓ Saved: example_background.png")
 
     # Example 5: With texture overlay
     print("5. Generating with texture...")
@@ -155,7 +154,7 @@ def generate_examples():
     generator = TextGenerator(config)
     result = generator.generate("Baker")
     cv2.imwrite(str(OUTPUT_DIR / "example_texture.png"), result.image)
-    print(f"   ✓ Saved: example_texture.png")
+    print("   ✓ Saved: example_texture.png")
 
     # Example 6: Full pipeline - transforms + colors + texture + background
     print("6. Generating full pipeline example...")
@@ -191,7 +190,7 @@ def generate_examples():
     generator = TextGenerator(config)
     result = generator.generate("TextBaker")
     cv2.imwrite(str(OUTPUT_DIR / "example_full.png"), result.image)
-    print(f"   ✓ Saved: example_full.png")
+    print("   ✓ Saved: example_full.png")
 
     print()
     print("=" * 60)

@@ -10,11 +10,6 @@ All examples can be found in the [`examples/`](https://github.com/q-viper/text-b
 
 Generate text images with default settings using characters from your dataset.
 
-<table>
-<tr>
-<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_basic.png" alt="Basic" width="100%"></td>
-<td width="60%">
-
 ```python
 from textbaker import TextGenerator, GeneratorConfig
 from textbaker.core.configs import DatasetConfig, TransformConfig
@@ -33,20 +28,15 @@ result = generator.generate("12345")
 cv2.imwrite("example_basic.png", result.image)
 ```
 
-</td>
-</tr>
-</table>
+**Output:**
+
+![Basic](assets/readme/example_basic.png)
 
 ---
 
 ## 2. With Transformations
 
 Apply rotation, perspective, and scale transformations.
-
-<table>
-<tr>
-<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_rotated.png" alt="Transformed" width="100%"></td>
-<td width="60%">
 
 ```python
 from textbaker import TextGenerator, GeneratorConfig
@@ -73,20 +63,15 @@ result = generator.generate("67890")
 cv2.imwrite("example_rotated.png", result.image)
 ```
 
-</td>
-</tr>
-</table>
+**Output:**
+
+![Transformed](assets/readme/example_rotated.png)
 
 ---
 
 ## 3. Random Colors
 
 Generate text with random colors per character.
-
-<table>
-<tr>
-<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_colored.png" alt="Colored" width="100%"></td>
-<td width="60%">
 
 ```python
 from textbaker import TextGenerator, GeneratorConfig
@@ -115,20 +100,15 @@ result = generator.generate("Hello")
 cv2.imwrite("example_colored.png", result.image)
 ```
 
-</td>
-</tr>
-</table>
+**Output:**
+
+![Colored](assets/readme/example_colored.png)
 
 ---
 
 ## 4. With Background Image
 
 Place generated text on background images.
-
-<table>
-<tr>
-<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_background.png" alt="Background" width="100%"></td>
-<td width="60%">
 
 ```python
 from textbaker import TextGenerator, GeneratorConfig
@@ -160,20 +140,15 @@ result = generator.generate("World")
 cv2.imwrite("example_background.png", result.image)
 ```
 
-</td>
-</tr>
-</table>
+**Output:**
+
+![Background](assets/readme/example_background.png)
 
 ---
 
 ## 5. With Texture Overlay
 
 Apply textures to the generated text.
-
-<table>
-<tr>
-<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_texture.png" alt="Texture" width="100%"></td>
-<td width="60%">
 
 ```python
 from textbaker import TextGenerator, GeneratorConfig
@@ -205,20 +180,15 @@ result = generator.generate("Baker")
 cv2.imwrite("example_texture.png", result.image)
 ```
 
-</td>
-</tr>
-</table>
+**Output:**
+
+![Texture](assets/readme/example_texture.png)
 
 ---
 
 ## 6. Full Pipeline
 
 Combine transforms, colors, textures, and backgrounds.
-
-<table>
-<tr>
-<td width="40%"><img src="https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_full.png" alt="Full Pipeline" width="100%"></td>
-<td width="60%">
 
 ```python
 from textbaker import TextGenerator, GeneratorConfig
@@ -262,9 +232,9 @@ result = generator.generate("TextBaker")
 cv2.imwrite("example_full.png", result.image)
 ```
 
-</td>
-</tr>
-</table>
+**Output:**
+
+![Full Pipeline](assets/readme/example_full.png)
 
 ---
 

@@ -11,7 +11,7 @@
 
 | Basic | Transformed | Colored | Background | Texture | Full Pipeline |
 |:-----:|:-----------:|:-------:|:----------:|:-------:|:-------------:|
-| ![Basic](https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_basic.png) | ![Rotated](https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_rotated.png) | ![Colored](https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_colored.png) | ![Background](https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_background.png) | ![Texture](https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_texture.png) | ![Full](https://raw.githubusercontent.com/q-viper/text-baker/main/assets/readme/example_full.png) |
+| ![Basic](assets/readme/example_basic.png) | ![Rotated](assets/readme/example_rotated.png) | ![Colored](assets/readme/example_colored.png) | ![Background](assets/readme/example_background.png) | ![Texture](assets/readme/example_texture.png) | ![Full](assets/readme/example_full.png) |
 
 📖 See [Examples](examples.md) for code that generates these images.
 
