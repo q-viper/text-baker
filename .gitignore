@@ -82,7 +82,13 @@ Thumbs.db
 
 # Project specific
 assets/output/
+assets/dataset/
 *.png
 *.jpg
 *.jpeg
+!assets/*.png
 !assets/readme/*.png
+!assets/backgrounds/*.png
+!assets/backgrounds/*.jpg
+!assets/textures/*.png
+!assets/textures/*.jpg
