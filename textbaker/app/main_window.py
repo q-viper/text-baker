@@ -42,7 +42,11 @@ from textbaker.utils.helpers import sanitize_filename
 from textbaker.utils.logging import LogHandler
 from textbaker.utils.random_state import rng
 from textbaker.widgets.dialogs import HintsDialog, TexturePickerDialog
-from textbaker.widgets.graphics import InteractiveGraphicsView, ResizableRotatableTextItem
+from textbaker.widgets.drawing_canvas import DrawingCanvas
+from textbaker.widgets.graphics import (
+    InteractiveGraphicsView,
+    ResizableRotatableTextItem,
+)
 
 
 class DatasetMaker(QMainWindow):
@@ -74,6 +78,9 @@ class DatasetMaker(QMainWindow):
         self.output_dir = Path(output_dir) if output_dir else Path("")
         self.background_dir = Path(background_dir) if background_dir else Path("")
         self.texture_dir = Path(texture_dir) if texture_dir else Path("")
+        # Custom characters directory in current working directory
+        self.custom_char_dir = Path.cwd() / ".textbaker" / "custom_characters"
+        self.custom_char_dir.mkdir(parents=True, exist_ok=True)
 
         # Data storage
         self.character_paths: dict[str, list[Path]] = {}
@@ -250,6 +257,23 @@ class DatasetMaker(QMainWindow):
 
         texture_mode_group.setLayout(texture_mode_layout)
         left_layout.addWidget(texture_mode_group)
+
+        # Draw Character button (above Custom Text group)
+        draw_btn = QPushButton("✏️ Draw Character")
+        draw_btn.setToolTip("Draw a custom character")
+        draw_btn.clicked.connect(self.open_drawing_canvas)
+        draw_btn.setStyleSheet("""
+            QPushButton {
+                background: #9C27B0;
+                color: white;
+                padding: 8px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: #7B1FA2;
+            }
+        """)
+        left_layout.addWidget(draw_btn)
 
         # Custom Text group
         text_group = QGroupBox("📝 Custom Text")
@@ -729,6 +753,63 @@ class DatasetMaker(QMainWindow):
         self.texture_label.setText(f"{self.texture_dir.name} ({len(self.texture_paths)})")
         logger.info(f"Found {len(self.texture_paths)} textures")
 
+    def open_drawing_canvas(self):
+        """Open the drawing canvas dialog."""
+        dialog = DrawingCanvas(self, self.custom_char_dir)
+        dialog.character_saved.connect(self._on_character_drawn)
+        dialog.exec()
+
+    def _on_character_drawn(self, character: str, image_path: str):
+        """Handle newly drawn character."""
+        logger.success(f"New character '{character}' saved to {image_path}")
+        # Use incremental update instead of full rescan
+        QTimer.singleShot(50, lambda: self._add_character_incremental(character, image_path))
+
+    def _add_character_incremental(self, character: str, image_path: str):
+        """Add a single character to the dataset without full rescan."""
+        from pathlib import Path
+
+        img_path = Path(image_path)
+
+        # Add to character_paths
+        if character not in self.character_paths:
+            self.character_paths[character] = []
+
+        if img_path not in self.character_paths[character]:
+            self.character_paths[character].append(img_path)
+
+        # Update or create checkbox
+        if character in self.character_checkboxes:
+            # Update existing checkbox with new count
+            count = len(self.character_paths[character])
+            self.character_checkboxes[character].setText(f"{character} ({count})")
+        else:
+            # Create new checkbox
+            count = len(self.character_paths[character])
+            cb = QCheckBox(f"{character} ({count})")
+            cb.setChecked(True)
+            self.character_checkboxes[character] = cb
+            # Insert in sorted position
+            inserted = False
+            for i in range(self.characters_layout.count()):
+                widget = self.characters_layout.itemAt(i).widget()
+                if widget and hasattr(widget, "text"):
+                    if widget.text().split()[0] > character:
+                        self.characters_layout.insertWidget(i, cb)
+                        inserted = True
+                        break
+            if not inserted:
+                # Remove stretch if it exists, add checkbox, then re-add stretch
+                last_item = self.characters_layout.itemAt(self.characters_layout.count() - 1)
+                if last_item and last_item.spacerItem():
+                    self.characters_layout.removeItem(last_item)
+                self.characters_layout.addWidget(cb)
+                self.characters_layout.addStretch()
+
+        logger.info(
+            f"Added character '{character}' to dataset (now {len(self.character_paths[character])} samples)"
+        )
+
     def scan_dataset(self):
         """
         Scan dataset folder for character images recursively.
@@ -736,6 +817,7 @@ class DatasetMaker(QMainWindow):
         Images are organized by their parent folder name as the character label.
         Supports nested folder structures - character name is taken from
         the immediate parent folder of each image file.
+        Also scans custom characters from .textbaker directory.
         """
         if not self.dataset_root.exists():
             logger.error("Dataset not found!")
@@ -752,6 +834,7 @@ class DatasetMaker(QMainWindow):
         image_extensions = {".png", ".jpg", ".jpeg"}
         total = 0
 
+        # Scan main dataset
         for img_path in self.dataset_root.rglob("*"):
             if img_path.suffix.lower() in image_extensions and img_path.is_file():
                 # Character name is the immediate parent folder
@@ -763,9 +846,22 @@ class DatasetMaker(QMainWindow):
                 self.character_paths[char_name].append(img_path)
                 total += 1
 
+        # Scan custom characters directory
+        if self.custom_char_dir.exists():
+            for img_path in self.custom_char_dir.rglob("*"):
+                if img_path.suffix.lower() in image_extensions and img_path.is_file():
+                    char_name = img_path.parent.name
+
+                    if char_name not in self.character_paths:
+                        self.character_paths[char_name] = []
+
+                    self.character_paths[char_name].append(img_path)
+                    total += 1
+
         # Create checkboxes for each character
         for char_name in sorted(self.character_paths.keys()):
-            cb = QCheckBox(f"{char_name} ({len(self.character_paths[char_name])})")
+            count = len(self.character_paths[char_name])
+            cb = QCheckBox(f"{char_name} ({count})")
             cb.setChecked(True)
             self.character_checkboxes[char_name] = cb
             self.characters_layout.addWidget(cb)

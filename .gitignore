@@ -2,6 +2,7 @@
 output
 dataset/
 examples/output/
+.textbaker/
 
 # MkDocs generated site
 site/

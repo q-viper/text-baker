@@ -30,6 +30,7 @@ TextBaker generates synthetic text images by combining character datasets with b
 ## ✨ Features
 
 - 🎨 **GUI Application** - Interactive interface for real-time text generation
+- ✏️ **Custom Character Drawing** - Draw and save custom characters directly in the app
 - 🖥️ **CLI Tool** - Batch processing from command line
 - 📚 **Python Library** - Programmatic API for integration
 - 🔄 **Transformations** - Rotation, perspective, scale, shear
