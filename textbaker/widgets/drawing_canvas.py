@@ -6,10 +6,9 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from PySide6.QtCore import QPoint, QThread, QTimer, Qt, Signal
+from PySide6.QtCore import QPoint, Qt, QThread, QTimer, Signal
 from PySide6.QtGui import QColor, QCursor, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
-    QApplication,
     QColorDialog,
     QDialog,
     QGroupBox,
@@ -457,10 +456,7 @@ class DrawingCanvas(QDialog):
         delta = event.angleDelta().y()
 
         # Change pen width based on scroll direction
-        if delta > 0:
-            new_width = min(self.pen_width + 2, 50)
-        else:
-            new_width = max(self.pen_width - 2, 1)
+        new_width = min(self.pen_width + 2, 50) if delta > 0 else max(self.pen_width - 2, 1)
 
         # Update pen width
         if new_width != self.pen_width:

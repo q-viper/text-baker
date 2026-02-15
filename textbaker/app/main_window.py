@@ -793,11 +793,10 @@ class DatasetMaker(QMainWindow):
             inserted = False
             for i in range(self.characters_layout.count()):
                 widget = self.characters_layout.itemAt(i).widget()
-                if widget and hasattr(widget, "text"):
-                    if widget.text().split()[0] > character:
-                        self.characters_layout.insertWidget(i, cb)
-                        inserted = True
-                        break
+                if widget and hasattr(widget, "text") and widget.text().split()[0] > character:
+                    self.characters_layout.insertWidget(i, cb)
+                    inserted = True
+                    break
             if not inserted:
                 # Remove stretch if it exists, add checkbox, then re-add stretch
                 last_item = self.characters_layout.itemAt(self.characters_layout.count() - 1)
