@@ -174,6 +174,13 @@ class TestOutputConfig:
 
         assert config.format == "png"
         assert config.create_labels is True
+        assert config.crop_to_text is True
+
+    def test_crop_to_text_parameter(self):
+        """Test crop_to_text parameter."""
+        config = OutputConfig(crop_to_text=False)
+
+        assert config.crop_to_text is False
 
 
 class TestGeneratorConfig:
@@ -186,6 +193,21 @@ class TestGeneratorConfig:
         assert config.seed == 42
         assert config.spacing == 0
         assert config.text_length == (1, 10)
+        assert config.canvas_height == 128
+        assert config.max_v_offset == 20
+        assert config.font_scale == 1.5
+
+    def test_new_ui_parameters(self):
+        """Test new UI parameters."""
+        config = GeneratorConfig(
+            canvas_height=200,
+            max_v_offset=30,
+            font_scale=2.0,
+        )
+
+        assert config.canvas_height == 200
+        assert config.max_v_offset == 30
+        assert config.font_scale == 2.0
 
     def test_nested_configs(self):
         """Test nested configuration objects."""
@@ -242,6 +264,23 @@ class TestGeneratorConfig:
             data = json.load(f)
         assert data["seed"] == 888
         assert data["spacing"] == 4
+
+    def test_ui_parameters_in_saved_config(self, temp_dir):
+        """Test that new UI parameters are saved and loaded correctly."""
+        config = GeneratorConfig(
+            canvas_height=150,
+            max_v_offset=25,
+            font_scale=1.8,
+        )
+
+        output_path = temp_dir / "ui_params_config.yaml"
+        config.to_file(output_path)
+
+        # Load it back
+        loaded = GeneratorConfig.from_file(output_path)
+        assert loaded.canvas_height == 150
+        assert loaded.max_v_offset == 25
+        assert loaded.font_scale == 1.8
 
 
 class TestCharacterConfig:
