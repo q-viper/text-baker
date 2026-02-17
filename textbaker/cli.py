@@ -72,10 +72,10 @@ def _launch_gui(
     generator_config = None
     if config:
         from textbaker.core.configs import GeneratorConfig
-        
+
         generator_config = GeneratorConfig.from_file(config)
         console.print(f"[dim]Loaded config from: {config}[/dim]")
-        
+
         # Override config with CLI arguments if provided
         if dataset:
             generator_config.dataset.dataset_dir = dataset
@@ -92,7 +92,9 @@ def _launch_gui(
 
     # Use default paths if not provided and no config
     if not generator_config:
-        dataset_path = dataset if dataset else (DEFAULT_DATASET if DEFAULT_DATASET.exists() else None)
+        dataset_path = (
+            dataset if dataset else (DEFAULT_DATASET if DEFAULT_DATASET.exists() else None)
+        )
         output_path = output if output else DEFAULT_OUTPUT
         backgrounds_path = (
             backgrounds
@@ -106,13 +108,13 @@ def _launch_gui(
         dataset_path = Path(generator_config.dataset.dataset_dir)
         output_path = Path(generator_config.output.output_dir)
         backgrounds_path = (
-            Path(generator_config.background.background_dir) 
-            if generator_config.background.background_dir 
+            Path(generator_config.background.background_dir)
+            if generator_config.background.background_dir
             else None
         )
         textures_path = (
-            Path(generator_config.texture.texture_dir) 
-            if generator_config.texture.texture_dir 
+            Path(generator_config.texture.texture_dir)
+            if generator_config.texture.texture_dir
             else None
         )
 
@@ -223,7 +225,7 @@ def gui_command(
 
         # Reproducible generation with seed
         $ textbaker --seed 42
-        
+
         # Load settings from config file
         $ textbaker --config my_config.yaml
     """
