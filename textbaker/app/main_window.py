@@ -407,6 +407,23 @@ class DatasetMaker(QMainWindow):
         left_dock.setWidget(self._create_scroll_widget(left_widget))
         self.addDockWidget(Qt.LeftDockWidgetArea, left_dock)
 
+        # Add Segment a Character button
+        segment_btn = QPushButton("Segment a Character")
+        segment_btn.setToolTip("Segment a character from images")
+        segment_btn.clicked.connect(self.open_segment_dialog)
+        segment_btn.setStyleSheet("""
+            QPushButton {
+                background: #607D8B;
+                color: white;
+                padding: 8px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: #546E7A;
+            }
+        """)
+        left_layout.addWidget(segment_btn)
+
     def _init_right_dock(self):
         """Initialize right dock with generation parameters."""
         right_dock = QDockWidget("Generation Parameters", self)
@@ -903,7 +920,7 @@ class DatasetMaker(QMainWindow):
         self.character_checkboxes.clear()
         self.character_paths.clear()
 
-        # Recursively find all images, character is parent folder name
+        # Recursively find all images, character is the parent folder name
         image_extensions = {".png", ".jpg", ".jpeg"}
         total = 0
 
@@ -1401,3 +1418,10 @@ class DatasetMaker(QMainWindow):
             except Exception as e:
                 logger.error(f"Failed to export config: {e}")
                 QMessageBox.warning(self, "Export Failed", f"Failed to export config:\n{e}")
+
+    def open_segment_dialog(self):
+        from textbaker.widgets.segment_dialog import SegmentDialog
+
+        dialog = SegmentDialog(self)
+        dialog.character_saved.connect(self._on_character_drawn)
+        dialog.exec()
