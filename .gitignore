@@ -69,7 +69,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+*.yaml
 # IDE
 .idea/
 .vscode/

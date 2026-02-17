@@ -142,20 +142,25 @@ class DatasetMaker(QMainWindow):
         logger.info("Applying configuration from file...")
 
         # Override paths from config if not already set via CLI
-        if not self.dataset_root.exists() and config.dataset.dataset_dir:
+        # Check if path is empty/unset (Path("") or None-like)
+        if str(self.dataset_root) == "" and config.dataset.dataset_dir:
             self.dataset_root = Path(config.dataset.dataset_dir)
             if self.dataset_root.exists():
                 self.dataset_label.setText(f"{self.dataset_root.name}")
 
-        if not self.output_dir.exists() and config.output.output_dir:
+        if str(self.output_dir) == "" and config.output.output_dir:
             self.output_dir = Path(config.output.output_dir)
             self.output_label.setText(f"{self.output_dir.name}")
 
-        if not self.background_dir.exists() and config.background.background_dir:
+        if str(self.background_dir) == "" and config.background.background_dir:
             self.background_dir = Path(config.background.background_dir)
+            if self.background_dir.exists():
+                self.bg_label.setText(f"{self.background_dir.name}")
 
-        if not self.texture_dir.exists() and config.texture.texture_dir:
+        if str(self.texture_dir) == "" and config.texture.texture_dir:
             self.texture_dir = Path(config.texture.texture_dir)
+            if self.texture_dir.exists():
+                self.texture_label.setText(f"{self.texture_dir.name}")
 
         # Transform settings
         self.min_rotation.setValue(int(config.transform.rotation_range[0]))
@@ -1336,7 +1341,7 @@ class DatasetMaker(QMainWindow):
             text_length=(self.min_chars.value(), self.max_chars.value()),
             dataset=DatasetConfig(
                 dataset_dir=self.dataset_root
-                if self.dataset_root.exists()
+                if str(self.dataset_root) and self.dataset_root.exists()
                 else Path("assets/dataset"),
             ),
             transform=TransformConfig(
@@ -1355,15 +1360,21 @@ class DatasetMaker(QMainWindow):
             ),
             texture=TextureConfig(
                 enabled=not self.no_texture_radio.isChecked(),
-                texture_dir=self.texture_dir if self.texture_dir.exists() else None,
+                texture_dir=self.texture_dir
+                if str(self.texture_dir) and self.texture_dir.exists()
+                else None,
                 per_character=self.texture_per_char_radio.isChecked(),
             ),
             background=BackgroundConfig(
                 enabled=bool(self.background_paths),
-                background_dir=self.background_dir if self.background_dir.exists() else None,
+                background_dir=self.background_dir
+                if str(self.background_dir) and self.background_dir.exists()
+                else None,
             ),
             output=OutputConfig(
-                output_dir=self.output_dir if self.output_dir.exists() else Path("output"),
+                output_dir=self.output_dir
+                if str(self.output_dir) and self.output_dir.exists()
+                else Path("output"),
             ),
             character=CharacterConfig(
                 width=self.char_dimension.value(),
