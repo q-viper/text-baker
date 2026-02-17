@@ -63,6 +63,7 @@ class DatasetMaker(QMainWindow):
         output_dir: Optional[str] = None,
         background_dir: Optional[str] = None,
         texture_dir: Optional[str] = None,
+        config: Optional["GeneratorConfig"] = None,
     ):
         super().__init__()
         self.setWindowTitle("TextBaker - Synthetic Text Dataset Generator")
@@ -73,11 +74,26 @@ class DatasetMaker(QMainWindow):
         if icon_path.exists():
             self.setWindowIcon(QIcon(str(icon_path)))
 
-        # Paths
-        self.dataset_root = Path(dataset_root) if dataset_root else Path("")
-        self.output_dir = Path(output_dir) if output_dir else Path("")
-        self.background_dir = Path(background_dir) if background_dir else Path("")
-        self.texture_dir = Path(texture_dir) if texture_dir else Path("")
+        # Paths - use config if provided, otherwise use arguments
+        if config:
+            self.dataset_root = Path(config.dataset.dataset_dir)
+            self.output_dir = Path(config.output.output_dir)
+            self.background_dir = (
+                Path(config.background.background_dir) 
+                if config.background.background_dir 
+                else Path("")
+            )
+            self.texture_dir = (
+                Path(config.texture.texture_dir) 
+                if config.texture.texture_dir 
+                else Path("")
+            )
+        else:
+            self.dataset_root = Path(dataset_root) if dataset_root else Path("")
+            self.output_dir = Path(output_dir) if output_dir else Path("")
+            self.background_dir = Path(background_dir) if background_dir else Path("")
+            self.texture_dir = Path(texture_dir) if texture_dir else Path("")
+        
         # Custom characters directory in current working directory
         self.custom_char_dir = Path.cwd() / ".textbaker" / "custom_characters"
         self.custom_char_dir.mkdir(parents=True, exist_ok=True)
@@ -110,6 +126,10 @@ class DatasetMaker(QMainWindow):
         logger.add(self.log_handler.write, format="{time:HH:mm:ss} | {level} | {message}")
 
         self._init_ui()
+        
+        # Apply config if provided
+        if config:
+            self._apply_config(config)
 
         # Scan directories if they exist
         if self.dataset_root.exists():
@@ -120,6 +140,63 @@ class DatasetMaker(QMainWindow):
             self.scan_textures()
 
         QTimer.singleShot(100, self._auto_start)
+
+    def _apply_config(self, config: "GeneratorConfig"):
+        """Apply configuration to UI widgets.
+        
+        Args:
+            config: GeneratorConfig instance to apply
+        """
+        from textbaker.core.configs import GeneratorConfig
+        
+        logger.info("Applying configuration to UI...")
+        
+        # Character settings
+        self.char_dimension.setValue(config.character.width)
+        
+        # Text length
+        self.min_chars.setValue(config.text_length[0])
+        self.max_chars.setValue(config.text_length[1])
+        
+        # Spacing (horizontal margin)
+        self.min_h_margin.setValue(config.spacing)
+        self.max_h_margin.setValue(config.spacing)
+        
+        # Canvas and layout
+        self.canvas_height.setValue(config.canvas_height)
+        self.max_v_offset.setValue(config.max_v_offset)
+        self.font_scale.setValue(config.font_scale)
+        
+        # Transform settings
+        self.min_rotation.setValue(int(config.transform.rotation_range[0]))
+        self.max_rotation.setValue(int(config.transform.rotation_range[1]))
+        self.min_perspective.setValue(int(config.transform.perspective_range[0]))
+        self.max_perspective.setValue(int(config.transform.perspective_range[1]))
+        self.min_resize_scale.setValue(config.transform.scale_range[0])
+        self.max_resize_scale.setValue(config.transform.scale_range[1])
+        
+        # Color settings
+        self.enable_color_checkbox.setChecked(config.color.random_color)
+        self.min_r.setValue(config.color.color_range_r[0])
+        self.max_r.setValue(config.color.color_range_r[1])
+        self.min_g.setValue(config.color.color_range_g[0])
+        self.max_g.setValue(config.color.color_range_g[1])
+        self.min_b.setValue(config.color.color_range_b[0])
+        self.max_b.setValue(config.color.color_range_b[1])
+        
+        # Texture settings
+        if config.texture.enabled:
+            if config.texture.per_character:
+                self.texture_per_char_radio.setChecked(True)
+            else:
+                self.texture_whole_text_radio.setChecked(True)
+        else:
+            self.no_texture_radio.setChecked(True)
+        
+        # Output settings
+        self.crop_to_text_checkbox.setChecked(config.output.crop_to_text)
+        
+        logger.success("Configuration applied successfully")
 
     def _auto_start(self):
         """Auto-start with random background and text if available."""
@@ -1205,6 +1282,9 @@ class DatasetMaker(QMainWindow):
             seed=42,  # Default seed
             spacing=self.min_h_margin.value(),
             text_length=(self.min_chars.value(), self.max_chars.value()),
+            canvas_height=self.canvas_height.value(),
+            max_v_offset=self.max_v_offset.value(),
+            font_scale=self.font_scale.value(),
             dataset=DatasetConfig(
                 dataset_dir=self.dataset_root
                 if self.dataset_root.exists()
@@ -1235,6 +1315,7 @@ class DatasetMaker(QMainWindow):
             ),
             output=OutputConfig(
                 output_dir=self.output_dir if self.output_dir.exists() else Path("output"),
+                crop_to_text=self.crop_to_text_checkbox.isChecked(),
             ),
             character=CharacterConfig(
                 width=self.char_dimension.value(),

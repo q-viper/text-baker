@@ -93,6 +93,7 @@ class OutputConfig(BaseConfig):
     quality: int = Field(default=95, ge=1, le=100, description="JPEG quality (if format is jpg)")
     create_labels: bool = Field(default=True, description="Create label files alongside images")
     label_format: str = Field(default="txt", description="Label file format (txt, json, csv)")
+    crop_to_text: bool = Field(default=True, description="Crop output to text bounding box")
 
 
 class DatasetConfig(BaseConfig):
@@ -182,6 +183,15 @@ class GeneratorConfig(BaseConfig):
     )
     spacing: int = Field(
         default=0, ge=-50, le=100, description="Spacing between characters in pixels"
+    )
+    canvas_height: int = Field(
+        default=128, ge=64, le=512, description="Canvas height for text rendering"
+    )
+    max_v_offset: int = Field(
+        default=20, ge=0, le=128, description="Maximum vertical offset for text positioning"
+    )
+    font_scale: float = Field(
+        default=1.5, ge=0.1, le=5.0, description="Font scale for fallback text rendering"
     )
     dataset: DatasetConfig = Field(
         default_factory=DatasetConfig, description="Dataset configuration"
