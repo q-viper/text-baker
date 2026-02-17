@@ -35,6 +35,9 @@ from PySide6.QtWidgets import (
 
 from textbaker.utils.random_state import rng
 
+# Supported image extensions for segmentation
+SUPPORTED_IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif']
+
 
 class TexturePickerDialog(QDialog):
     """Dialog for selecting texture regions from images."""
@@ -688,11 +691,11 @@ class CharacterSegmentationDialog(QDialog):
         if not self.image_folder:
             return
 
-        # Use rglob to find all image files recursively
-        image_extensions = ['.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif']
+        # Use rglob to find all image files recursively (case-insensitive)
         self.image_paths = []
         
-        for ext in image_extensions:
+        for ext in SUPPORTED_IMAGE_EXTENSIONS:
+            # Use case-insensitive pattern matching by checking both cases
             self.image_paths.extend(self.image_folder.rglob(f'*{ext}'))
             self.image_paths.extend(self.image_folder.rglob(f'*{ext.upper()}'))
 
