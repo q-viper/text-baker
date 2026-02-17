@@ -2,6 +2,7 @@
 Dialog widgets for TextBaker.
 """
 
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -397,6 +398,7 @@ class CharacterSegmentationDialog(QDialog):
     """Dialog for segmenting characters from images using polygon drawing."""
 
     character_saved = Signal(str, str)  # character, image_path
+    MAX_CHAR_LABEL_LENGTH = 10  # Maximum length for character label input
 
     def __init__(self, parent=None, save_dir: Path = None):
         super().__init__(parent)
@@ -608,7 +610,7 @@ class CharacterSegmentationDialog(QDialog):
         char_layout = QVBoxLayout()
         char_layout.addWidget(QLabel("Enter the character(s) this region represents:"))
         self.char_input = QLineEdit()
-        self.char_input.setMaxLength(10)
+        self.char_input.setMaxLength(self.MAX_CHAR_LABEL_LENGTH)
         self.char_input.setPlaceholderText("e.g., A, 5, @, abc, etc.")
         self.char_input.setStyleSheet("""
             QLineEdit {
@@ -872,8 +874,8 @@ class CharacterSegmentationDialog(QDialog):
         y_max, x_max = coords.max(axis=0)
 
         # Crop to bounding box
-        cropped = masked[y_min:y_max+1, x_min:x_max+1]
-        cropped_mask = mask[y_min:y_max+1, x_min:x_max+1]
+        cropped = masked[y_min:y_max + 1, x_min:x_max + 1]
+        cropped_mask = mask[y_min:y_max + 1, x_min:x_max + 1]
 
         # Set background to black where mask is 0
         cropped[cropped_mask == 0] = 0
@@ -922,7 +924,6 @@ class CharacterSegmentationDialog(QDialog):
         char_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate unique filename
-        import time
         timestamp = int(time.time() * 1000)
         filename = f"segmented_{timestamp}.png"
         save_path = char_dir / filename
