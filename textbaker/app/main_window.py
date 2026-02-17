@@ -158,7 +158,7 @@ class DatasetMaker(QMainWindow):
         self.min_chars.setValue(config.text_length[0])
         self.max_chars.setValue(config.text_length[1])
 
-        # Spacing (horizontal margin)
+        # Spacing (horizontal margin) - config uses single spacing value for both min/max
         self.min_h_margin.setValue(config.spacing)
         self.max_h_margin.setValue(config.spacing)
 
