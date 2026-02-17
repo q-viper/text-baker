@@ -228,6 +228,10 @@ class TextGenerator:
             elif self.config.color.fixed_color:
                 img = self._apply_fixed_color(img, self.config.color.fixed_color)
 
+            # Apply texture per character if enabled
+            if self.config.texture.enabled and self.config.texture.per_character and self._textures:
+                img = self._apply_texture(img)
+
             char_imgs.append(img)
             labels.append(char)
 
@@ -237,8 +241,8 @@ class TextGenerator:
         # Apply perspective to composite
         composite = self._apply_perspective(composite)
 
-        # Apply texture
-        if self.config.texture.enabled and self._textures:
+        # Apply texture to composite (only if not applied per character)
+        if self.config.texture.enabled and not self.config.texture.per_character and self._textures:
             composite = self._apply_texture(composite)
 
         # Apply background

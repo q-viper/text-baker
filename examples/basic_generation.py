@@ -93,7 +93,6 @@ def example_with_background():
         background=BackgroundConfig(
             enabled=True,
             background_dir=str(ASSETS_DIR / "backgrounds"),
-            mode="random",  # Random position on background
         ),
     )
 
@@ -123,7 +122,6 @@ def example_with_texture_and_background():
         background=BackgroundConfig(
             enabled=True,
             background_dir=str(ASSETS_DIR / "backgrounds"),
-            mode="random",
         ),
     )
 
@@ -265,7 +263,6 @@ def example_full_pipeline():
         background=BackgroundConfig(
             enabled=True,
             background_dir=str(ASSETS_DIR / "backgrounds"),
-            mode="random",
         ),
     )
 

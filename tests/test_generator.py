@@ -167,6 +167,48 @@ class TestTextGeneratorTextures:
 
         assert result.image is not None
 
+    def test_with_texture_per_character(self, sample_dataset, sample_textures):
+        """Test generation with per-character texture."""
+        config = GeneratorConfig(
+            seed=42,
+            dataset=DatasetConfig(dataset_dir=str(sample_dataset)),
+            texture=TextureConfig(
+                enabled=True,
+                texture_dir=str(sample_textures),
+                opacity=0.7,
+                per_character=True,
+            ),
+        )
+        generator = TextGenerator(config)
+
+        result = generator.generate("ABC")
+
+        assert result.image is not None
+        assert result.text == "ABC"
+        # Should have alpha channel when texture is applied per character
+        assert result.image.shape[2] == 4
+
+    def test_with_texture_on_composite(self, sample_dataset, sample_textures):
+        """Test generation with texture applied to composite."""
+        config = GeneratorConfig(
+            seed=42,
+            dataset=DatasetConfig(dataset_dir=str(sample_dataset)),
+            texture=TextureConfig(
+                enabled=True,
+                texture_dir=str(sample_textures),
+                opacity=0.7,
+                per_character=False,
+            ),
+        )
+        generator = TextGenerator(config)
+
+        result = generator.generate("ABC")
+
+        assert result.image is not None
+        assert result.text == "ABC"
+        # Should have alpha channel when texture is applied to composite
+        assert result.image.shape[2] == 4
+
 
 class TestTextGeneratorBackgrounds:
     """Tests for TextGenerator background application."""
