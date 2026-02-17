@@ -41,7 +41,7 @@ from textbaker.core.image_processing import ImageProcessor
 from textbaker.utils.helpers import sanitize_filename
 from textbaker.utils.logging import LogHandler
 from textbaker.utils.random_state import rng
-from textbaker.widgets.dialogs import HintsDialog, TexturePickerDialog
+from textbaker.widgets.dialogs import CharacterSegmentationDialog, HintsDialog, TexturePickerDialog
 from textbaker.widgets.drawing_canvas import DrawingCanvas
 from textbaker.widgets.graphics import (
     InteractiveGraphicsView,
@@ -274,6 +274,23 @@ class DatasetMaker(QMainWindow):
             }
         """)
         left_layout.addWidget(draw_btn)
+
+        # Segment Character button
+        segment_btn = QPushButton("📐 Segment Character")
+        segment_btn.setToolTip("Segment a character from images using polygon drawing")
+        segment_btn.clicked.connect(self.open_segmentation_dialog)
+        segment_btn.setStyleSheet("""
+            QPushButton {
+                background: #FF5722;
+                color: white;
+                padding: 8px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: #E64A19;
+            }
+        """)
+        left_layout.addWidget(segment_btn)
 
         # Custom Text group
         text_group = QGroupBox("📝 Custom Text")
@@ -756,6 +773,12 @@ class DatasetMaker(QMainWindow):
     def open_drawing_canvas(self):
         """Open the drawing canvas dialog."""
         dialog = DrawingCanvas(self, self.custom_char_dir)
+        dialog.character_saved.connect(self._on_character_drawn)
+        dialog.exec()
+
+    def open_segmentation_dialog(self):
+        """Open the character segmentation dialog."""
+        dialog = CharacterSegmentationDialog(self, self.custom_char_dir)
         dialog.character_saved.connect(self._on_character_drawn)
         dialog.exec()
 
