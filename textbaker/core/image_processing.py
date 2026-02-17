@@ -130,7 +130,7 @@ class ImageProcessor:
         h, w = img.shape[:2]
         shift = int(w * np.tan(np.radians(angle)))
         direction = rng.choice(["left", "right", "top", "bottom"])
-        
+
         # Define source points (corners of original image)
         src = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
 
@@ -145,21 +145,21 @@ class ImageProcessor:
             dst = np.float32([[0, 0], [w, shift], [w, h - shift], [0, h]])
 
         # Calculate the bounding box of destination points to ensure all content fits
-        min_x = max(0, int(np.min(dst[:, 0])))
+        min_x = int(np.min(dst[:, 0]))
         max_x = int(np.max(dst[:, 0])) + 1
-        min_y = max(0, int(np.min(dst[:, 1])))
+        min_y = int(np.min(dst[:, 1]))
         max_y = int(np.max(dst[:, 1])) + 1
-        
+
         # Adjust destination points if there are negative coordinates
-        offset_x = -min(0, int(np.min(dst[:, 0])))
-        offset_y = -min(0, int(np.min(dst[:, 1])))
-        
+        offset_x = -min(0, min_x)
+        offset_y = -min(0, min_y)
+
         if offset_x > 0 or offset_y > 0:
             dst[:, 0] += offset_x
             dst[:, 1] += offset_y
             max_x += offset_x
             max_y += offset_y
-        
+
         output_w = max_x - min_x
         output_h = max_y - min_y
 
