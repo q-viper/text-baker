@@ -16,7 +16,8 @@ from textbaker.utils.random_state import rng
 
 # Suppress OpenCV logging
 os.environ["OPENCV_LOG_LEVEL"] = "FATAL"
-cv2.setLogLevel(3)
+if hasattr(cv2, "setLogLevel"):
+    cv2.setLogLevel(3)
 
 
 class ImageProcessor:
@@ -124,13 +125,16 @@ class ImageProcessor:
             angle: Perspective angle in degrees.
 
         Returns:
-            Perspective-transformed image.
+            Perspective-transformed image with adjusted canvas to fit content.
         """
         h, w = img.shape[:2]
         shift = int(w * np.tan(np.radians(angle)))
         direction = rng.choice(["left", "right", "top", "bottom"])
+        
+        # Define source points (corners of original image)
         src = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
 
+        # Define destination points based on direction
         if direction == "left":
             dst = np.float32([[shift, 0], [w, 0], [w, h], [0, h]])
         elif direction == "right":
@@ -140,10 +144,29 @@ class ImageProcessor:
         else:
             dst = np.float32([[0, 0], [w, shift], [w, h - shift], [0, h]])
 
+        # Calculate the bounding box of destination points to ensure all content fits
+        min_x = max(0, int(np.min(dst[:, 0])))
+        max_x = int(np.max(dst[:, 0])) + 1
+        min_y = max(0, int(np.min(dst[:, 1])))
+        max_y = int(np.max(dst[:, 1])) + 1
+        
+        # Adjust destination points if there are negative coordinates
+        offset_x = -min(0, int(np.min(dst[:, 0])))
+        offset_y = -min(0, int(np.min(dst[:, 1])))
+        
+        if offset_x > 0 or offset_y > 0:
+            dst[:, 0] += offset_x
+            dst[:, 1] += offset_y
+            max_x += offset_x
+            max_y += offset_y
+        
+        output_w = max_x - min_x
+        output_h = max_y - min_y
+
         M = cv2.getPerspectiveTransform(src, dst)
         border_value = 0 if len(img.shape) == 2 else (0, 0, 0)
         return cv2.warpPerspective(
-            img, M, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=border_value
+            img, M, (output_w, output_h), borderMode=cv2.BORDER_CONSTANT, borderValue=border_value
         )
 
     def apply_perspective_to_image(self, img: np.ndarray, angle: float) -> np.ndarray:
@@ -314,6 +337,7 @@ class ImageProcessor:
         Returns:
             Processed character image.
         """
+        # First, do an initial crop to remove excessive whitespace
         coords = cv2.findNonZero(img)
         if coords is None:
             return np.zeros((char_dim, char_dim, 3), dtype=np.uint8)
@@ -332,6 +356,13 @@ class ImageProcessor:
         if max_persp > 0:
             angle = rng.uniform(min_persp, max_persp)
             cropped = self.apply_perspective(cropped, angle)
+
+        # Crop again after transformations to remove any padding added by transformations
+        # This ensures we crop based on the warped version
+        coords = cv2.findNonZero(cropped)
+        if coords is not None:
+            x, y, w, h = cv2.boundingRect(coords)
+            cropped = cropped[y : y + h, x : x + w]
 
         # Apply texture or color
         if apply_texture:
