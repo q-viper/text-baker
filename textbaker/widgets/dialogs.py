@@ -8,11 +8,12 @@ from typing import Optional
 import cv2
 import numpy as np
 from loguru import logger
-from PySide6.QtCore import QEvent, Qt, Signal, QThread
-from PySide6.QtGui import QBrush, QColor, QImage, QMouseEvent, QPainter, QPen, QPixmap, QPolygonF
+from PySide6.QtCore import QEvent, QPointF, Qt, Signal, QThread
+from PySide6.QtGui import QBrush, QColor, QCursor, QImage, QMouseEvent, QPainter, QPen, QPixmap, QPolygonF
 from PySide6.QtWidgets import (
     QDialog,
     QFileDialog,
+    QGraphicsEllipseItem,
     QGraphicsPolygonItem,
     QGraphicsRectItem,
     QGraphicsScene,
@@ -818,7 +819,6 @@ class CharacterSegmentationDialog(QDialog):
             # Just draw a point
             if len(self.current_polygon) == 1:
                 x, y = self.current_polygon[0]
-                from PySide6.QtWidgets import QGraphicsEllipseItem
                 point_item = QGraphicsEllipseItem(x - 3, y - 3, 6, 6)
                 point_item.setBrush(QBrush(QColor(255, 0, 0)))
                 point_item.setPen(QPen(QColor(255, 0, 0), 2))
@@ -829,7 +829,6 @@ class CharacterSegmentationDialog(QDialog):
         # Draw the polygon
         polygon = QPolygonF()
         for x, y in self.current_polygon:
-            from PySide6.QtCore import QPointF
             polygon.append(QPointF(x, y))
 
         polygon_item = QGraphicsPolygonItem(polygon)
