@@ -53,31 +53,64 @@ def _launch_gui(
     backgrounds: Optional[Path] = None,
     textures: Optional[Path] = None,
     seed: Optional[int] = None,
+    config_path: Optional[Path] = None,
 ):
     """Internal function to launch the GUI."""
     from PySide6.QtWidgets import QApplication
 
     from textbaker.app.main_window import DatasetMaker
+    from textbaker.core.configs import GeneratorConfig
     from textbaker.utils import DEFAULT_SEED, rng
     from textbaker.utils.logging import setup_logger
 
     setup_logger()
 
-    # Set random seed (use provided or default)
-    actual_seed = seed if seed is not None else DEFAULT_SEED
+    # Load config from file if provided
+    config = None
+    if config_path and config_path.exists():
+        try:
+            config = GeneratorConfig.from_file(config_path)
+            console.print(f"[green]Loaded config from:[/green] {config_path}")
+        except Exception as e:
+            console.print(f"[red]Failed to load config:[/red] {e}")
+
+    # Set random seed (use provided, or from config, or default)
+    if seed is not None:
+        actual_seed = seed
+    elif config and config.seed:
+        actual_seed = config.seed
+    else:
+        actual_seed = DEFAULT_SEED
     rng.seed(actual_seed)
 
-    # Use default paths if not provided
-    dataset_path = dataset if dataset else (DEFAULT_DATASET if DEFAULT_DATASET.exists() else None)
-    output_path = output if output else DEFAULT_OUTPUT
-    backgrounds_path = (
-        backgrounds
-        if backgrounds
-        else (DEFAULT_BACKGROUNDS if DEFAULT_BACKGROUNDS.exists() else None)
-    )
-    textures_path = (
-        textures if textures else (DEFAULT_TEXTURES if DEFAULT_TEXTURES.exists() else None)
-    )
+    # Use CLI paths first, then config paths, then defaults
+    if dataset:
+        dataset_path = dataset
+    elif config and config.dataset.dataset_dir:
+        dataset_path = config.dataset.dataset_dir
+    else:
+        dataset_path = DEFAULT_DATASET if DEFAULT_DATASET.exists() else None
+
+    if output:
+        output_path = output
+    elif config and config.output.output_dir:
+        output_path = config.output.output_dir
+    else:
+        output_path = DEFAULT_OUTPUT
+
+    if backgrounds:
+        backgrounds_path = backgrounds
+    elif config and config.background.background_dir:
+        backgrounds_path = config.background.background_dir
+    else:
+        backgrounds_path = DEFAULT_BACKGROUNDS if DEFAULT_BACKGROUNDS.exists() else None
+
+    if textures:
+        textures_path = textures
+    elif config and config.texture.texture_dir:
+        textures_path = config.texture.texture_dir
+    else:
+        textures_path = DEFAULT_TEXTURES if DEFAULT_TEXTURES.exists() else None
 
     # Log startup info with paths
     console.print(
@@ -88,7 +121,8 @@ def _launch_gui(
             f"  Dataset:     {dataset_path or '[not set]'}\n"
             f"  Output:      {output_path}\n"
             f"  Backgrounds: {backgrounds_path or '[not set]'}\n"
-            f"  Textures:    {textures_path or '[not set]'}\n\n"
+            f"  Textures:    {textures_path or '[not set]'}\n"
+            f"  Config:      {config_path or '[not set]'}\n\n"
             f"[yellow]Seed:[/yellow] {actual_seed}",
             border_style="green",
         )
@@ -103,6 +137,7 @@ def _launch_gui(
         output_dir=str(output_path) if output_path else None,
         background_dir=str(backgrounds_path) if backgrounds_path else None,
         texture_dir=str(textures_path) if textures_path else None,
+        config=config,
     )
     window.show()
 
@@ -184,8 +219,11 @@ def gui_command(
 
         # Reproducible generation with seed
         $ textbaker --seed 42
+
+        # Launch with a config file
+        $ textbaker -c config.yaml
     """
-    _launch_gui(dataset, output, backgrounds, textures, seed)
+    _launch_gui(dataset, output, backgrounds, textures, seed, config)
 
 
 # Available CV2 fonts for help text

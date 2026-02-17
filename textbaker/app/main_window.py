@@ -37,6 +37,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from textbaker.core.configs import GeneratorConfig
 from textbaker.core.image_processing import ImageProcessor
 from textbaker.utils.helpers import sanitize_filename
 from textbaker.utils.logging import LogHandler
@@ -63,6 +64,7 @@ class DatasetMaker(QMainWindow):
         output_dir: Optional[str] = None,
         background_dir: Optional[str] = None,
         texture_dir: Optional[str] = None,
+        config: Optional["GeneratorConfig"] = None,
     ):
         super().__init__()
         self.setWindowTitle("TextBaker - Synthetic Text Dataset Generator")
@@ -111,6 +113,10 @@ class DatasetMaker(QMainWindow):
 
         self._init_ui()
 
+        # Apply config if provided (after UI is initialized)
+        if config:
+            self._apply_config(config)
+
         # Scan directories if they exist
         if self.dataset_root.exists():
             self.scan_dataset()
@@ -130,6 +136,69 @@ class DatasetMaker(QMainWindow):
             logger.info("Auto-starting...")
             self.load_random_background()
             QTimer.singleShot(50, self.generate_text)
+
+    def _apply_config(self, config: GeneratorConfig):
+        """Apply a GeneratorConfig to the UI widgets."""
+        logger.info("Applying configuration from file...")
+
+        # Override paths from config if not already set via CLI
+        if not self.dataset_root.exists() and config.dataset.dataset_dir:
+            self.dataset_root = Path(config.dataset.dataset_dir)
+            if self.dataset_root.exists():
+                self.dataset_label.setText(f"{self.dataset_root.name}")
+
+        if not self.output_dir.exists() and config.output.output_dir:
+            self.output_dir = Path(config.output.output_dir)
+            self.output_label.setText(f"{self.output_dir.name}")
+
+        if not self.background_dir.exists() and config.background.background_dir:
+            self.background_dir = Path(config.background.background_dir)
+
+        if not self.texture_dir.exists() and config.texture.texture_dir:
+            self.texture_dir = Path(config.texture.texture_dir)
+
+        # Transform settings
+        self.min_rotation.setValue(int(config.transform.rotation_range[0]))
+        self.max_rotation.setValue(int(config.transform.rotation_range[1]))
+        self.min_perspective.setValue(int(config.transform.perspective_range[0]))
+        self.max_perspective.setValue(int(config.transform.perspective_range[1]))
+        self.min_resize_scale.setValue(config.transform.scale_range[0])
+        self.max_resize_scale.setValue(config.transform.scale_range[1])
+
+        # Character settings
+        self.char_dimension.setValue(config.character.width)
+        self.font_scale.setValue(1.5)  # Default font scale
+
+        # Text length settings
+        self.min_chars.setValue(config.text_length[0])
+        self.max_chars.setValue(config.text_length[1])
+
+        # Spacing (horizontal margin)
+        self.min_h_margin.setValue(config.spacing)
+        self.max_h_margin.setValue(max(config.spacing, 10))
+
+        # Color settings
+        self.enable_color_checkbox.setChecked(config.color.random_color)
+        if config.color.random_color:
+            self.min_r.setValue(config.color.color_range_r[0])
+            self.max_r.setValue(config.color.color_range_r[1])
+            self.min_g.setValue(config.color.color_range_g[0])
+            self.max_g.setValue(config.color.color_range_g[1])
+            self.min_b.setValue(config.color.color_range_b[0])
+            self.max_b.setValue(config.color.color_range_b[1])
+            # Enable color controls
+            self._toggle_color_controls(True)
+
+        # Texture settings
+        if config.texture.enabled:
+            if config.texture.per_character:
+                self.texture_per_char_radio.setChecked(True)
+            else:
+                self.texture_whole_text_radio.setChecked(True)
+        else:
+            self.no_texture_radio.setChecked(True)
+
+        logger.success("Configuration applied successfully")
 
     def show_hints(self):
         """Show the hints dialog."""
@@ -1153,24 +1222,84 @@ class DatasetMaker(QMainWindow):
             self.text_item.setSelected(False)
 
         if self.crop_to_text_checkbox.isChecked() and self.text_item:
-            render_rect = self.text_item.sceneBoundingRect()
+            # Get the 4 corners of the text item in scene coordinates
+            rect = self.text_item.boundingRect()
+            corners_local = [
+                rect.topLeft(),
+                rect.topRight(),
+                rect.bottomRight(),
+                rect.bottomLeft(),
+            ]
+            # Map to scene coordinates (includes rotation/scale/position)
+            corners_scene = [self.text_item.mapToScene(c) for c in corners_local]
+
+            # Get bounding box of rotated corners for rendering
+            xs = [c.x() for c in corners_scene]
+            ys = [c.y() for c in corners_scene]
+            min_x, max_x = min(xs), max(xs)
+            min_y, max_y = min(ys), max(ys)
+
+            # Add padding to ensure we capture everything
+            padding = 5
+            render_rect = QRectF(
+                min_x - padding,
+                min_y - padding,
+                (max_x - min_x) + 2 * padding,
+                (max_y - min_y) + 2 * padding,
+            )
+
+            # Render the scene region
+            render_img = QImage(
+                int(render_rect.width()), int(render_rect.height()), QImage.Format_RGB888
+            )
+            render_img.fill(Qt.white)
+
+            painter = QPainter(render_img)
+            self.graphics_scene.render(painter, QRectF(render_img.rect()), render_rect)
+            painter.end()
+
+            arr = self._qimage_to_numpy(render_img)
+            cv_img = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+
+            # Calculate corner positions relative to rendered image
+            src_points = np.array(
+                [[c.x() - render_rect.x(), c.y() - render_rect.y()] for c in corners_scene],
+                dtype=np.float32,
+            )
+
+            # Destination: upright rectangle with original dimensions
+            dst_width = int(rect.width())
+            dst_height = int(rect.height())
+            dst_points = np.array(
+                [
+                    [0, 0],
+                    [dst_width - 1, 0],
+                    [dst_width - 1, dst_height - 1],
+                    [0, dst_height - 1],
+                ],
+                dtype=np.float32,
+            )
+
+            # Apply perspective transform to get upright image
+            matrix = cv2.getPerspectiveTransform(src_points, dst_points)
+            cv_img = cv2.warpPerspective(cv_img, matrix, (dst_width, dst_height))
         else:
             render_rect = self.graphics_scene.sceneRect()
 
-        render_img = QImage(
-            int(render_rect.width()), int(render_rect.height()), QImage.Format_RGB888
-        )
-        render_img.fill(Qt.white)
+            render_img = QImage(
+                int(render_rect.width()), int(render_rect.height()), QImage.Format_RGB888
+            )
+            render_img.fill(Qt.white)
 
-        painter = QPainter(render_img)
-        self.graphics_scene.render(painter, QRectF(render_img.rect()), render_rect)
-        painter.end()
+            painter = QPainter(render_img)
+            self.graphics_scene.render(painter, QRectF(render_img.rect()), render_rect)
+            painter.end()
+
+            arr = self._qimage_to_numpy(render_img)
+            cv_img = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
 
         if self.text_item and was_selected:
             self.text_item.setSelected(True)
-
-        arr = self._qimage_to_numpy(render_img)
-        cv_img = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
 
         safe_filename = sanitize_filename(self.current_number)
         base = f"{safe_filename}.png"
