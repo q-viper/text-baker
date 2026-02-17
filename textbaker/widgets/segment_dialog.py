@@ -275,10 +275,9 @@ class SegmentDialog(QDialog):
 
     def mouse_release(self, event):
         """Handle right-click to undo last point."""
-        if self.drawing and event.button() == Qt.RightButton:
-            if self.temp_polygon:
-                self.temp_polygon.pop()
-                self.update_image_label()
+        if self.drawing and event.button() == Qt.RightButton and self.temp_polygon:
+            self.temp_polygon.pop()
+            self.update_image_label()
 
     def mouse_double_click(self, event):
         if self.drawing and len(self.temp_polygon) > 2:

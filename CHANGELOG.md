@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-02-17
+
+### Added
+- Character segmentation dialog: improved UI layout for easier use
+- Checkbox to invert color before saving cropped region
+- Info label and documentation updated to mention invert option
+- Save logic respects invert checkbox
+
+### Improved
+- Button layout and usability in segmentation dialog
+- Documentation in `docs/character-segmentation.md` for new features
+
+### Fixed
+- Lint error (SIM102): Use a single `if` statement instead of nested `if` in `mouse_release`
+
+### References
+- [#1 Config is not being used properly.](https://github.com/q-viper/text-baker/issues/1)
+- [#2 Backgrounds and textures are not being used properly.](https://github.com/q-viper/text-baker/issues/2)
+- [#3 Transformation is still not clearly followed from last generation.](https://github.com/q-viper/text-baker/issues/3)
+- [#4 Have a feature in UI to segment the character.](https://github.com/q-viper/text-baker/issues/4)
+
 ## [0.1.4] - 2026-02-15
 
 ### Added
