@@ -507,7 +507,7 @@ class DatasetMaker(QMainWindow):
         h_margin_layout = QHBoxLayout()
         h_margin_layout.addWidget(QLabel("H-Margin:"))
         self.min_h_margin = QSpinBox()
-        self.min_h_margin.setRange(0, 50)
+        self.min_h_margin.setRange(-50, 50)
         self.min_h_margin.setValue(2)
         h_margin_layout.addWidget(self.min_h_margin)
         h_margin_layout.addWidget(QLabel("-"))
@@ -530,7 +530,7 @@ class DatasetMaker(QMainWindow):
         v_offset_layout = QHBoxLayout()
         v_offset_layout.addWidget(QLabel("V-Offset:"))
         self.max_v_offset = QSpinBox()
-        self.max_v_offset.setRange(0, 64)
+        self.max_v_offset.setRange(-64, 64)
         self.max_v_offset.setValue(20)
         v_offset_layout.addWidget(self.max_v_offset)
         num_layout.addLayout(v_offset_layout)
@@ -1091,26 +1091,52 @@ class DatasetMaker(QMainWindow):
 
         if len(images) > 0:
             canvas_height = self.canvas_height.value()
-            strips = []
+
+            # Pre-compute one margin per inter-character gap.
+            # Negative margin means characters overlap by that many pixels.
+            margins = [
+                rng.randint(self.min_h_margin.value(), self.max_h_margin.value())
+                for _ in range(len(images) - 1)
+            ]
+
+            # Cumulative x positions — negative margin pulls next char left (overlap)
+            x_positions = [0]
+            for i, img in enumerate(images[:-1]):
+                x_positions.append(x_positions[-1] + img.shape[1] + margins[i])
+
+            # Canvas width = rightmost pixel of any character (at least 1)
+            total_width = max(xp + img.shape[1] for xp, img in zip(x_positions, images))
+            total_width = max(total_width, 1)
+
+            canvas = np.zeros((canvas_height, total_width, 3), dtype=np.uint8)
 
             for i, img in enumerate(images):
                 if len(img.shape) == 2:
                     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
+                char_h, char_w = img.shape[:2]
                 v_offset = rng.randint(-self.max_v_offset.value(), self.max_v_offset.value())
                 y_pos = max(
-                    0, min(canvas_height // 2 - char_dim // 2 + v_offset, canvas_height - char_dim)
+                    0,
+                    min(canvas_height // 2 - char_h // 2 + v_offset, canvas_height - char_h),
                 )
+                x_pos = x_positions[i]
 
-                strip = np.zeros((canvas_height, char_dim, 3), dtype=np.uint8)
-                strip[y_pos : y_pos + char_dim] = img
-                strips.append(strip)
+                # Clip destination to canvas bounds
+                x1 = max(0, x_pos)
+                x2 = min(total_width, x_pos + char_w)
+                y1 = y_pos
+                y2 = min(canvas_height, y_pos + char_h)
 
-                if i < len(images) - 1:
-                    margin = rng.randint(self.min_h_margin.value(), self.max_h_margin.value())
-                    strips.append(np.zeros((canvas_height, margin, 3), dtype=np.uint8))
+                if x2 > x1 and y2 > y1:
+                    src_x1 = x1 - x_pos  # offset into char image if clipped left
+                    src_x2 = src_x1 + (x2 - x1)
+                    src_region = img[0 : y2 - y1, src_x1:src_x2]
+                    # Non-black character pixels are painted on top (later chars overlap earlier)
+                    mask = np.any(src_region > 10, axis=2)
+                    canvas[y1:y2, x1:x2][mask] = src_region[mask]
 
-            self.current_composite = np.hstack(strips)
+            self.current_composite = canvas
 
             # Apply whole-text texture if selected
             if self.texture_whole_text_radio.isChecked():
